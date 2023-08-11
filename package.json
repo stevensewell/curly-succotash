@@ -1,5 +1,5 @@
 {
-  "version": "0.1.4",
+  "version": "0.1.7",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -17,7 +17,8 @@
     "lint": "tsdx lint",
     "prepare": "tsdx build",
     "size": "size-limit",
-    "analyze": "size-limit --why"
+    "analyze": "size-limit --why",
+    "release": "tsdx build && npm publish"
   },
   "husky": {
     "hooks": {

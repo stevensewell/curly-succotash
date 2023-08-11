@@ -12,8 +12,8 @@ interface RestClientOptions {
 export class RestClient {
   // @ts-ignore
   private authorization: string;
-  private baseURL: string;
-  private customHeaders: Record<string, string>;
+  private readonly baseURL: string;
+  private readonly customHeaders: Record<string, string>;
   // @ts-ignore
   private ready: Promise<void>;
 
@@ -86,11 +86,10 @@ export class RestClient {
   }
 
   private async handleResponse<T>(response: Response): Promise<Either<ProblemDetails, T>> {
-    if (response.status === 204)
-      return Either.Right<ProblemDetails, T>(null as unknown as T);
+    const isJson = response.headers.get('content-type')?.includes('application/json');
 
     const result
-      = await tryCatchAsync<T>(async () => response.json()) as Either<Error, ProblemDetails | T>;
+      = await tryCatchAsync<T>(async () => isJson ? response.json() : response.text()) as Either<Error, ProblemDetails | T>;
 
     function mapErrorToProblemDetails(r: Error) {
       return new ProblemDetails({

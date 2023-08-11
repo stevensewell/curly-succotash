@@ -86,7 +86,7 @@ export class RestClient {
   }
 
   private async handleResponse<T>(response: Response): Promise<Either<ProblemDetails, T>> {
-    const isJson = response.headers.get('content-type')?.includes('application/json');
+    const isJson = response.headers.get('content-type')?.includes('json');
 
     const result
       = await tryCatchAsync<T>(async () => isJson ? response.json() : response.text()) as Either<Error, ProblemDetails | T>;

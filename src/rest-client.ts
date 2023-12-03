@@ -37,40 +37,83 @@ export class RestClient {
   }
 
   public async get<T>(route: string, params?: Record<string, string>): Promise<Either<ProblemDetails, T>> {
-    await this.ready;
     const toStringParams = params ? `` : '';
-    const response = await fetch(`${this.baseURL}/${route}${toStringParams}`, this.getInitObject(HTTP_METHODS.GET));
+    const fullRoute = `${this.baseURL}/${route}${toStringParams}`;
 
-    return await this.handleResponse<T>(response);
+    await this.ready;
+    const result = await tryCatchAsync(async () => fetch(fullRoute, this.getInitObject(HTTP_METHODS.GET))) as Either<Error, Response>;
+    const response = result.ifLeft(() => new Response());
+    const error = result.ifRight(() => new Error());
+
+    return result.isLeft()
+      ? Either.Left<ProblemDetails, T>(this.mapErrorResult(error,fullRoute))
+      : await this.handleResponse<T>(response);
   }
 
-  public async post<T, R>(route: string, body: T): Promise<Either<ProblemDetails, R>> {
-    await this.ready;
-    const response = await fetch(`${this.baseURL}/${route}`, this.getInitObject(HTTP_METHODS.POST, body));
-
-    return await this.handleResponse<R>(response);
+  private mapErrorResult(error: Error, fullRoute: string) {
+    return new ProblemDetails({
+      type: error.name,
+      title: error.message,
+      status: 500,
+      detail: error.stack ?? '',
+      instance: fullRoute
+    });
   }
 
-  public async put<T, R>(route: string, body: T): Promise<Either<ProblemDetails, R>> {
+  public async post<R>(route: string): Promise<Either<ProblemDetails, R>>;
+  public async post<T, R>(route: string, body?: T): Promise<Either<ProblemDetails, R>> {
+    const fullRoute = `${this.baseURL}/${route}`;
     await this.ready;
-    const response = await fetch(`${this.baseURL}/${route}`, this.getInitObject(HTTP_METHODS.PUT, body));
 
-    return await this.handleResponse<R>(response);
+    const result = await tryCatchAsync(async () => fetch(fullRoute, this.getInitObject(HTTP_METHODS.POST, body))) as Either<Error, Response>;
+    const response = result.ifLeft(() => new Response());
+    const error = result.ifRight(() => new Error());
+
+    return result.isLeft()
+      ? Either.Left<ProblemDetails, R>(this.mapErrorResult(error,fullRoute))
+      : await this.handleResponse<R>(response);
+  }
+
+  public async put<R>(route: string): Promise<Either<ProblemDetails, R>>;
+  public async put<T, R>(route: string, body?: T): Promise<Either<ProblemDetails, R>> {
+    const fullRoute = `${this.baseURL}/${route}`;
+    await this.ready;
+
+    const result = await tryCatchAsync(async () => fetch(fullRoute, this.getInitObject(HTTP_METHODS.PUT, body))) as Either<Error, Response>;
+    const response = result.ifLeft(() => new Response());
+    const error = result.ifRight(() => new Error());
+
+    return result.isLeft()
+      ? Either.Left<ProblemDetails, R>(this.mapErrorResult(error,fullRoute))
+      : await this.handleResponse<R>(response);
   }
 
   public async delete<R>(route: string): Promise<Either<ProblemDetails, R>>
   public async delete<T, R>(route: string, body?: T): Promise<Either<ProblemDetails, R>> {
+    const fullRoute = `${this.baseURL}/${route}`;
     await this.ready;
-    const response = await fetch(`${this.baseURL}/${route}`, this.getInitObject(HTTP_METHODS.DELETE, body));
 
-    return await this.handleResponse<R>(response);
+    const result = await tryCatchAsync(async () => fetch(fullRoute, this.getInitObject(HTTP_METHODS.DELETE, body))) as Either<Error, Response>;
+    const response = result.ifLeft(() => new Response());
+    const error = result.ifRight(() => new Error());
+
+    return result.isLeft()
+      ? Either.Left<ProblemDetails, R>(this.mapErrorResult(error,fullRoute))
+      : await this.handleResponse<R>(response);
   }
 
-  public async patch<T, R>(route: string, body: T): Promise<Either<ProblemDetails, R>> {
+  public async patch<R>(route: string): Promise<Either<ProblemDetails, R>>;
+  public async patch<T, R>(route: string, body?: T): Promise<Either<ProblemDetails, R>> {
+    const fullRoute = `${this.baseURL}/${route}`;
     await this.ready;
-    const response = await fetch(`${this.baseURL}/${route}`, this.getInitObject(HTTP_METHODS.PATCH, body));
 
-    return await this.handleResponse<R>(response);
+    const result = await tryCatchAsync(async () => fetch(fullRoute, this.getInitObject(HTTP_METHODS.PATCH, body))) as Either<Error, Response>;
+    const response = result.ifLeft(() => new Response());
+    const error = result.ifRight(() => new Error());
+
+    return result.isLeft()
+      ? Either.Left<ProblemDetails, R>(this.mapErrorResult(error,fullRoute))
+      : await this.handleResponse<R>(response);
   }
 
   private getInitObject(method: HTTP_METHODS, body?: unknown) {

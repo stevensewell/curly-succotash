@@ -70,4 +70,19 @@ export class Either<L, R> {
       ? Either.Right(this.right as R)
       : Either.Left(fn(this.left));
   }
+
+  /***
+   * Maps both values in the Either
+   */
+  public bimap<RetL, RetR>(fnL: (l: L) => RetL, fnR: (r: R) => RetR): Either<RetL, RetR> {
+    return this.left === undefined
+      ? Either.Right(fnR(this.right as R))
+      : Either.Left(fnL(this.left));
+  };
+
+  public async bimapAsync<RetL, RetR>(fnL: (l: L) => Promise<RetL>, fnR: (r: R) => Promise<RetR>): Promise<Either<RetL, RetR>> {
+    return this.left === undefined
+      ? Either.Right(await fnR(this.right as R))
+      : Either.Left(await fnL(this.left));
+  }
 }
